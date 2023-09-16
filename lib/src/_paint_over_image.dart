@@ -361,6 +361,7 @@ class ImagePainterState extends State<ImagePainter> {
 
   int _strokeMultiplier = 1;
   late TextDelegate textDelegate;
+
   @override
   void initState() {
     super.initState();
@@ -396,8 +397,7 @@ class ImagePainterState extends State<ImagePainter> {
 
   bool get isEdited => _controller.paintHistory.isNotEmpty;
 
-  Size get imageSize =>
-      Size(_image?.width.toDouble() ?? 0, _image?.height.toDouble() ?? 0);
+  Size get imageSize => Size(_image?.width.toDouble() ?? 0, _image?.height.toDouble() ?? 0);
 
   ///Converts the incoming image type from constructor to [ui.Image]
   Future<void> _resolveAndConvertImage() async {
@@ -459,8 +459,7 @@ class ImagePainterState extends State<ImagePainter> {
   Future<ui.Image> _loadNetworkImage(String path) async {
     final completer = Completer<ImageInfo>();
     final img = NetworkImage(path);
-    img.resolve(const ImageConfiguration()).addListener(
-        ImageStreamListener((info, _) => completer.complete(info)));
+    img.resolve(const ImageConfiguration()).addListener(ImageStreamListener((info, _) => completer.complete(info)));
     final imageInfo = await completer.future;
     _isLoaded.value = true;
     return imageInfo.image;
@@ -486,13 +485,49 @@ class ImagePainterState extends State<ImagePainter> {
     );
   }
 
+  double val = 5;
   ///paints image on given constrains for drawing if image is not null.
   Widget _paintImage() {
     return Container(
       height: widget.height ?? double.maxFinite,
       width: widget.width ?? double.maxFinite,
+      margin: const EdgeInsets.only(
+        top: 35,
+        bottom: 25,
+        right: 35,
+        left: 35,
+      ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(
+            "Media editor",
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 30),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(7),
+            ),
+            child: Center(
+              child: Row(
+                children: [
+                  const Icon(Icons.key_rounded),
+                  const SizedBox(width: 10),
+                  Text(
+                    "Keypoint  1.1 : Toward you",
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          fontSize: 13,
+                          color: const Color.fromRGBO(59, 59, 59, 1.0),
+                        ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           if (widget.controlsAtTop && widget.showControls) _buildControls(),
           Expanded(
             child: FittedBox(
@@ -501,23 +536,75 @@ class ImagePainterState extends State<ImagePainter> {
                 child: AnimatedBuilder(
                   animation: _controller,
                   builder: (context, child) {
-                    return InteractiveViewer(
-                      transformationController: _transformationController,
-                      maxScale: 2.4,
-                      minScale: 1,
-                      panEnabled: _controller.mode == PaintMode.none,
-                      scaleEnabled: widget.isScalable!,
-                      onInteractionUpdate: _scaleUpdateGesture,
-                      onInteractionEnd: _scaleEndGesture,
-                      child: CustomPaint(
-                        size: imageSize,
-                        willChange: true,
-                        isComplex: true,
-                        painter: DrawImage(
-                          image: _image,
-                          controller: _controller,
+                    return Row(
+                      children: [
+                        Column(
+                          children: [
+                            const Icon(Icons.zoom_in),
+                            const SizedBox(height: 75),
+                            Transform(
+                              alignment: FractionalOffset.center,
+                              // Rotate sliders by 90 degrees
+                              transform: Matrix4.identity()..rotateZ(90 * 3.1415927 / -180),
+                              child: SizedBox(
+                                height: 50,
+                                child: Slider(
+                                  value: val,
+                                  min: 1.0,
+                                  max: 10.0,
+                                  divisions: 10,
+                                  label: '$val',
+                                  activeColor: Colors.grey,
+                                  inactiveColor: Colors.grey,
+                                  onChanged: (double newValue) {
+                                    setState(() {
+                                      val = newValue;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 75),
+                            const Icon(Icons.zoom_in),
+                            const SizedBox(height: 75),
+                            Transform(
+                              alignment: FractionalOffset.center,
+                              // Rotate sliders by 90 degrees
+                              transform: Matrix4.identity()..rotateZ(90 * 3.1415927 / -180),
+                              child: Slider(
+                                value: val,
+                                min: 1.0,
+                                max: 50.0,
+                                divisions: 50,
+                                label: '$val',
+                                onChanged: (double newValue) {
+                                  setState(() {
+                                    val = newValue;
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
+                        InteractiveViewer(
+                          transformationController: _transformationController,
+                          maxScale: 2.4,
+                          minScale: 1,
+                          panEnabled: _controller.mode == PaintMode.none,
+                          scaleEnabled: widget.isScalable!,
+                          onInteractionUpdate: _scaleUpdateGesture,
+                          onInteractionEnd: _scaleEndGesture,
+                          child: CustomPaint(
+                            size: imageSize,
+                            willChange: true,
+                            isComplex: true,
+                            painter: DrawImage(
+                              image: _image,
+                              controller: _controller,
+                            ),
+                          ),
+                        ),
+                      ],
                     );
                   },
                 ),
@@ -573,14 +660,12 @@ class ImagePainterState extends State<ImagePainter> {
               children: [
                 IconButton(
                   tooltip: textDelegate.undo,
-                  icon: widget.undoIcon ??
-                      Icon(Icons.reply, color: Colors.grey[700]),
+                  icon: widget.undoIcon ?? Icon(Icons.reply, color: Colors.grey[700]),
                   onPressed: () => _controller.undo(),
                 ),
                 IconButton(
                   tooltip: textDelegate.clearAllProgress,
-                  icon: widget.clearAllIcon ??
-                      Icon(Icons.clear, color: Colors.grey[700]),
+                  icon: widget.clearAllIcon ?? Icon(Icons.clear, color: Colors.grey[700]),
                   onPressed: () => _controller.clear(),
                 ),
               ],
@@ -591,8 +676,7 @@ class ImagePainterState extends State<ImagePainter> {
   }
 
   _scaleStartGesture(ScaleStartDetails onStart) {
-    final _zoomAdjustedOffset =
-        _transformationController.toScene(onStart.localFocalPoint);
+    final _zoomAdjustedOffset = _transformationController.toScene(onStart.localFocalPoint);
     if (!widget.isSignature) {
       _controller.setStart(_zoomAdjustedOffset);
       _controller.addOffsets(_zoomAdjustedOffset);
@@ -601,8 +685,7 @@ class ImagePainterState extends State<ImagePainter> {
 
   ///Fires while user is interacting with the screen to record painting.
   void _scaleUpdateGesture(ScaleUpdateDetails onUpdate) {
-    final _zoomAdjustedOffset =
-        _transformationController.toScene(onUpdate.localFocalPoint);
+    final _zoomAdjustedOffset = _transformationController.toScene(onUpdate.localFocalPoint);
     _controller.setInProgress(true);
     if (_controller.start == null) {
       _controller.setStart(_zoomAdjustedOffset);
@@ -612,24 +695,18 @@ class ImagePainterState extends State<ImagePainter> {
       _controller.addOffsets(_zoomAdjustedOffset);
     }
     if (_controller.onTextUpdateMode) {
-      _controller.paintHistory
-          .lastWhere((element) => element.mode == PaintMode.text)
-          .offsets = [_zoomAdjustedOffset];
+      _controller.paintHistory.lastWhere((element) => element.mode == PaintMode.text).offsets = [_zoomAdjustedOffset];
     }
   }
 
   ///Fires when user stops interacting with the screen.
   void _scaleEndGesture(ScaleEndDetails onEnd) {
     _controller.setInProgress(false);
-    if (_controller.start != null &&
-        _controller.end != null &&
-        (_controller.mode == PaintMode.freeStyle)) {
+    if (_controller.start != null && _controller.end != null && (_controller.mode == PaintMode.freeStyle)) {
       _controller.addOffsets(null);
       _addFreeStylePoints();
       _controller.offsets.clear();
-    } else if (_controller.start != null &&
-        _controller.end != null &&
-        _controller.mode != PaintMode.text) {
+    } else if (_controller.start != null && _controller.end != null && _controller.mode != PaintMode.text) {
       _addEndPoints();
     }
     _controller.resetStartAndEnd();
@@ -661,9 +738,7 @@ class ImagePainterState extends State<ImagePainter> {
     final painter = DrawImage(image: _image, controller: _controller);
     final size = Size(_image!.width.toDouble(), _image!.height.toDouble());
     painter.paint(canvas, size);
-    return recorder
-        .endRecording()
-        .toImage(size.width.floor(), size.height.floor());
+    return recorder.endRecording().toImage(size.width.floor(), size.height.floor());
   }
 
   PopupMenuItem _showOptionsRow() {
@@ -751,16 +826,14 @@ class ImagePainterState extends State<ImagePainter> {
   Future<Uint8List?> exportImage() async {
     late ui.Image _convertedImage;
     if (widget.isSignature) {
-      final _boundary = _repaintKey.currentContext!.findRenderObject()
-          as RenderRepaintBoundary;
+      final _boundary = _repaintKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
       _convertedImage = await _boundary.toImage(pixelRatio: 3);
     } else if (widget.byteArray != null && _controller.paintHistory.isEmpty) {
       return widget.byteArray;
     } else {
       _convertedImage = await _renderImage();
     }
-    final byteData =
-        await _convertedImage.toByteData(format: ui.ImageByteFormat.png);
+    final byteData = await _convertedImage.toByteData(format: ui.ImageByteFormat.png);
     return byteData?.buffer.asUint8List();
   }
 
@@ -806,9 +879,7 @@ class ImagePainterState extends State<ImagePainter> {
           AnimatedBuilder(
             animation: _controller,
             builder: (_, __) {
-              final icon = paintModes(textDelegate)
-                  .firstWhere((item) => item.mode == _controller.mode)
-                  .icon;
+              final icon = paintModes(textDelegate).firstWhere((item) => item.mode == _controller.mode).icon;
               return PopupMenuButton(
                 tooltip: textDelegate.changeMode,
                 shape: ContinuousRectangleBorder(
@@ -846,8 +917,7 @@ class ImagePainterState extends State<ImagePainter> {
             shape: ContinuousRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
-            icon:
-                widget.brushIcon ?? Icon(Icons.brush, color: Colors.grey[700]),
+            icon: widget.brushIcon ?? Icon(Icons.brush, color: Colors.grey[700]),
             itemBuilder: (_) => [_showRangeSlider()],
           ),
           AnimatedBuilder(
@@ -881,8 +951,7 @@ class ImagePainterState extends State<ImagePainter> {
           ),
           IconButton(
             tooltip: textDelegate.clearAllProgress,
-            icon: widget.clearAllIcon ??
-                Icon(Icons.clear, color: Colors.grey[700]),
+            icon: widget.clearAllIcon ?? Icon(Icons.clear, color: Colors.grey[700]),
             onPressed: () => _controller.clear(),
           ),
         ],

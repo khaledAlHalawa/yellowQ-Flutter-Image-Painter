@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:image_painter/image_painter.dart';
 import 'package:open_file/open_file.dart';
@@ -33,8 +32,7 @@ class _ImagePainterExampleState extends State<ImagePainterExample> {
     final image = await _imageKey.currentState?.exportImage();
     final directory = (await getApplicationDocumentsDirectory()).path;
     await Directory('$directory/sample').create(recursive: true);
-    final fullPath =
-        '$directory/sample/${DateTime.now().millisecondsSinceEpoch}.png';
+    final fullPath = '$directory/sample/${DateTime.now().millisecondsSinceEpoch}.png';
     final imgFile = File('$fullPath');
     if (image != null) {
       imgFile.writeAsBytesSync(image);
@@ -45,8 +43,7 @@ class _ImagePainterExampleState extends State<ImagePainterExample> {
           content: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("Image Exported successfully.",
-                  style: TextStyle(color: Colors.white)),
+              const Text("Image Exported successfully.", style: TextStyle(color: Colors.white)),
               TextButton(
                 onPressed: () => OpenFile.open("$fullPath"),
                 child: Text(
@@ -75,14 +72,26 @@ class _ImagePainterExampleState extends State<ImagePainterExample> {
           )
         ],
       ),
-      body: ImagePainter.asset(
-        "assets/sample.jpg",
-        key: _imageKey,
-        scalable: true,
-        initialStrokeWidth: 2,
-        textDelegate: TextDelegate(),
-        initialColor: Colors.green,
-        initialPaintMode: PaintMode.line,
+      body: IconButton(
+        icon: Icon(Icons.add),
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (context) {
+              return Dialog(
+                child: ImagePainter.asset(
+                  "assets/test.png",
+                  key: _imageKey,
+                  scalable: true,
+                  initialStrokeWidth: 2,
+                  textDelegate: TextDelegate(),
+                  initialColor: Colors.green,
+                  initialPaintMode: PaintMode.line,
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
